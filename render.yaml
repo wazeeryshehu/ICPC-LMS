@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: icpc-learning-portal
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: ICPC_DATA_DIR
+        value: /var/data
+    disk:
+      name: icpc-data
+      mountPath: /var/data
+      sizeGB: 1
