@@ -96,7 +96,7 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
 
   if (user.status === "pending") {
     return {
-      error: "This account has not been activated. Use the staff activation page with your Staff ID and official email.",
+      error: "This account has not been activated. Contact the Training and Development Unit to activate your account and issue a temporary password.",
     };
   }
   if (user.status === "suspended") {
@@ -152,7 +152,7 @@ export async function requestPasswordResetAction(_prev: AuthState, formData: For
   const db = getDb();
   const ip = await getClientIp();
   const genericMessage =
-    "If those details match an active staff record, a password reset link has been sent to the officer's official email address.";
+    "If those details match an active staff record, a one-time reset link has been queued to the officer's official email address. If it does not arrive, contact the Training and Development Unit.";
 
   const cutoff = new Date(Date.now() - 15 * 60000).toISOString();
   const ipAttempts = db
@@ -171,11 +171,11 @@ export async function requestPasswordResetAction(_prev: AuthState, formData: For
     logAudit({ action: "auth.password_reset_requested", entity: "user", details: "No matching staff record", ip });
     return { message: genericMessage };
   }
-  if (user.status === "pending") {
-    return { error: "This account has not been activated yet. Use the staff activation page to set your first password." };
-  }
-  if (user.status === "suspended") {
-    return { error: "This account is suspended. Contact the Training and Development Unit to restore access." };
+  // Pending and suspended accounts get the same response, so reset requests
+  // cannot be used to enumerate staff account status.
+  if (user.status !== "active") {
+    logAudit({ action: "auth.password_reset_requested", entity: "user", details: `Account status ${user.status}`, ip });
+    return { message: genericMessage };
   }
 
   const userAttempts = db
@@ -194,12 +194,23 @@ export async function requestPasswordResetAction(_prev: AuthState, formData: For
     "INSERT INTO password_resets(token, user_id, requested_ip, created_at, expires_at, used_at) VALUES(?,?,?,?,?,NULL)"
   ).run(token, user.id, ip, nowIso(), expires);
 
+  const resetPath = `/reset-password/${token}`;
+  db.prepare(
+    "INSERT INTO email_queue(user_id, to_email, subject, body, status, created_at) VALUES(?,?,?,?,?,?)"
+  ).run(
+    user.id,
+    user.email,
+    "ICPC Learning Portal password reset",
+    `A password reset was requested for your ICPC Learning Portal account. Open this one-time link within ${RESET_MINUTES} minutes: ${resetPath} — if this wasn't you, ignore this message.`,
+    "queued",
+    nowIso()
+  );
   createNotification({
     userId: user.id,
     title: "Password reset requested",
-    body: `A password reset link was requested for your ICPC Learning Portal account. Use this one-time link within ${RESET_MINUTES} minutes: /reset-password/${token} — if this wasn't you, ignore this message.`,
+    body: "A password reset link was requested for your account. If this wasn't you, contact ICT support immediately.",
     type: "warning",
-    link: `/reset-password/${token}`,
+    link: "/login",
   });
   logAudit({
     actorId: user.id,
@@ -207,14 +218,19 @@ export async function requestPasswordResetAction(_prev: AuthState, formData: For
     action: "auth.password_reset_requested",
     entity: "user",
     entityId: user.id,
-    details: "Reset link generated",
+    details: "Reset link queued for official email",
     ip,
   });
 
-  return {
-    message: `A reset link has been sent to ${maskEmail(user.email)}. It expires in ${RESET_MINUTES} minutes.`,
-    resetLink: `/reset-password/${token}`,
-  };
+  // Never return the reset token in production: the requester may not be the
+  // account owner. Local development keeps the demo link for offline testing.
+  if (process.env.NODE_ENV !== "production") {
+    return {
+      message: `Demonstration mode: the reset link for ${maskEmail(user.email)} is shown below and expires in ${RESET_MINUTES} minutes.`,
+      resetLink: resetPath,
+    };
+  }
+  return { message: genericMessage };
 }
 
 export async function resetPasswordAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
@@ -272,6 +288,16 @@ export async function resetPasswordAction(_prev: AuthState, formData: FormData):
 }
 
 export async function activateAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  // Staff IDs and official emails are predictable, so possession of both is
+  // not proof of identity. Production onboarding is admin-issued instead.
+  const selfActivationEnabled =
+    process.env.NODE_ENV !== "production" || process.env.ALLOW_SELF_ACTIVATION === "true";
+  if (!selfActivationEnabled) {
+    return {
+      error:
+        "Self-service activation is disabled. Contact the Training and Development Unit to activate your account and issue a temporary password.",
+    };
+  }
   const staffId = String(formData.get("staffId") ?? "").trim().toUpperCase();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");

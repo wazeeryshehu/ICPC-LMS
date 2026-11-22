@@ -129,39 +129,47 @@ export function LoginForm({ next }: { next?: string }) {
           <KeyRound size={16} />
           {pending ? "Verifying credentials…" : "Sign in to the portal"}
         </button>
-        <p className="text-center text-[11.5px] text-muted">
-          New officer?{" "}
-          <Link href="/activate" className="font-semibold text-brand-700 hover:underline dark:text-brand-300">
-            Activate your account
-          </Link>
-        </p>
+        {process.env.NODE_ENV !== "production" ? (
+          <p className="text-center text-[11.5px] text-muted">
+            New officer?{" "}
+            <Link href="/activate" className="font-semibold text-brand-700 hover:underline dark:text-brand-300">
+              Activate your account
+            </Link>
+          </p>
+        ) : (
+          <p className="text-center text-[11.5px] text-muted">
+            New officer? Contact the Training and Development Unit to activate your account.
+          </p>
+        )}
       </form>
 
-      <div className="mt-6 rounded-xl border border-dashed border-line-strong bg-surface-2/60 p-3.5">
-        <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-muted">
-          <ShieldCheck size={13} /> Demonstration accounts
+      {process.env.NODE_ENV !== "production" && (
+        <div className="mt-6 rounded-xl border border-dashed border-line-strong bg-surface-2/60 p-3.5">
+          <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-muted">
+            <ShieldCheck size={13} /> Demonstration accounts
+          </div>
+          <p className="mt-1 text-[10.5px] text-muted">
+            Password for all demo accounts: <span className="font-mono font-bold text-ink">ICPC@2026</span>. Select one to fill the form.
+            You can also sign in with the officer&apos;s official email address instead of the Staff ID.
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            {DEMO_ACCOUNTS.map((acct) => (
+              <button
+                key={acct.staffId}
+                type="button"
+                onClick={() => {
+                  setIdentifier(acct.staffId);
+                  setPassword("ICPC@2026");
+                }}
+                className="rounded-lg border border-line bg-panel px-2.5 py-1.5 text-left text-[10.5px] text-ink-soft transition hover:border-brand-400 hover:bg-panel-2"
+              >
+                <span className="block font-bold text-ink">{acct.staffId}</span>
+                <span className="block text-[9.5px] text-muted">{acct.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-        <p className="mt-1 text-[10.5px] text-muted">
-          Password for all demo accounts: <span className="font-mono font-bold text-ink">ICPC@2026</span>. Select one to fill the form.
-          You can also sign in with the officer&apos;s official email address instead of the Staff ID.
-        </p>
-        <div className="mt-2 grid grid-cols-2 gap-1.5">
-          {DEMO_ACCOUNTS.map((acct) => (
-            <button
-              key={acct.staffId}
-              type="button"
-              onClick={() => {
-                setIdentifier(acct.staffId);
-                setPassword("ICPC@2026");
-              }}
-              className="rounded-lg border border-line bg-panel px-2.5 py-1.5 text-left text-[10.5px] text-ink-soft transition hover:border-brand-400 hover:bg-panel-2"
-            >
-              <span className="block font-bold text-ink">{acct.staffId}</span>
-              <span className="block text-[9.5px] text-muted">{acct.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

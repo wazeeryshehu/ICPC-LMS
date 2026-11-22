@@ -1,8 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { getDb, nowIso } from "@/lib/db";
-import { getClientIp, logAudit, requireUser } from "@/lib/auth";
+import { SESSION_COOKIE, getClientIp, logAudit, requireUser } from "@/lib/auth";
 import { hashPassword, validatePasswordPolicy, verifyPassword } from "@/lib/crypto";
 import { createNotification } from "@/lib/achievements";
 
@@ -49,6 +50,10 @@ export async function changePasswordAction(formData: FormData): Promise<void> {
   getDb()
     .prepare("UPDATE users SET password_hash = ?, must_change_password = 0, updated_at = ? WHERE id = ?")
     .run(hashPassword(next), nowIso(), user.id);
+  const currentToken = (await cookies()).get(SESSION_COOKIE)?.value ?? "";
+  getDb()
+    .prepare("DELETE FROM app_sessions WHERE user_id = ? AND token <> ?")
+    .run(user.id, currentToken);
   createNotification({
     userId: user.id,
     title: "Password changed",

@@ -35,6 +35,7 @@ const serviceWorkerHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   experimental: {
     serverActions: {
       bodySizeLimit: "9mb",

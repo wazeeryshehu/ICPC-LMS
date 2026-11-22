@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { randomInt } from "node:crypto";
 import { getDb, nowIso, withTransaction } from "@/lib/db";
 import { getClientIp, logAudit, requireUser } from "@/lib/auth";
 import { hashPassword, isValidOfficialEmail, isValidStaffId, staffEmail, validatePasswordPolicy } from "@/lib/crypto";
@@ -177,7 +178,7 @@ export async function resetPasswordAction(formData: FormData): Promise<void> {
     | undefined;
   if (!target) redirect("/admin/users");
   if (target.role === "super_admin" && !isSuperAdmin(actor.role)) redirect("/admin/users?error=privilege");
-  const temp = `ICPC@${Math.floor(100000 + Math.random() * 899999)}`;
+  const temp = `ICPC@${randomInt(100000, 1000000)}`;
   db.prepare("UPDATE users SET password_hash=?, must_change_password=1, failed_attempts=0, locked_until=NULL, updated_at=? WHERE id=?").run(
     hashPassword(temp),
     nowIso(),

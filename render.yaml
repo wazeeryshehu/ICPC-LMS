@@ -13,6 +13,8 @@ services:
         value: production
       - key: ICPC_DATA_DIR
         value: /var/data
+      - key: ALLOW_SELF_ACTIVATION
+        value: "false"
     disk:
       name: icpc-data
       mountPath: /var/data

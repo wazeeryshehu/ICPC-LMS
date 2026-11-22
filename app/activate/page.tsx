@@ -12,6 +12,8 @@ export const dynamic = "force-dynamic";
 export default async function ActivatePage() {
   const user = await getSessionUser();
   if (user) redirect(HOME_BY_ROLE[user.role]);
+  const selfActivationEnabled =
+    process.env.NODE_ENV !== "production" || process.env.ALLOW_SELF_ACTIVATION === "true";
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[0.85fr_1fr]">
@@ -64,7 +66,17 @@ export default async function ActivatePage() {
             <p className="mb-5 mt-1 text-[12px] leading-relaxed text-muted">
               Use the Staff ID and official email assigned to you by the Training and Development Unit.
             </p>
-            <ActivateForm />
+            {selfActivationEnabled ? (
+              <ActivateForm />
+            ) : (
+              <div className="flex items-start gap-2.5 rounded-lg border border-line bg-surface-2/60 px-3.5 py-3 text-[12px] leading-relaxed text-muted">
+                <ShieldCheck size={16} className="mt-0.5 shrink-0 text-brand-600" />
+                <span>
+                  Self-service activation is disabled on this deployment. Contact the Training and
+                  Development Unit so they can activate your account and issue a temporary password.
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

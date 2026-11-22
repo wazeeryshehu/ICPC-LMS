@@ -101,7 +101,9 @@ export default async function LoginPage({
           </div>
 
           <p className="mt-4 text-center text-[10.5px] leading-relaxed text-muted">
-            Staff activation is available for new officers pre-registered by the Training and Development Unit.
+            {process.env.NODE_ENV !== "production"
+              ? "Staff activation is available for new officers pre-registered by the Training and Development Unit."
+              : "Account activation is handled by the Training and Development Unit."}
             <br />Protected by role-based access control and audited sessions.
           </p>
         </div>

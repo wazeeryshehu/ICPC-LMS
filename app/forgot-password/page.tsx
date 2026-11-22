@@ -38,11 +38,18 @@ export default async function ForgotPasswordPage() {
 
         <div className="mt-5 flex items-start gap-2 rounded-xl border border-line bg-panel-2 px-4 py-3 text-[11px] leading-relaxed text-muted">
           <KeyRound size={14} className="mt-0.5 shrink-0 text-brand-700 dark:text-brand-300" />
-          <span>
-            <strong className="text-ink">Demonstration environment.</strong> Email delivery is simulated, so the reset link
-            is displayed on screen after you submit the form. Try the demo account Staff ID{" "}
-            <span className="font-mono font-semibold text-ink">P0001</span>.
-          </span>
+          {process.env.NODE_ENV !== "production" ? (
+            <span>
+              <strong className="text-ink">Demonstration environment.</strong> Email delivery is simulated, so the
+              reset link is displayed on screen after you submit the form. Try the demo account Staff ID{" "}
+              <span className="font-mono font-semibold text-ink">P0001</span>.
+            </span>
+          ) : (
+            <span>
+              Reset links are delivered only to the official ICPC email on your staff record. If the message does not
+              arrive, contact the Training and Development Unit.
+            </span>
+          )}
         </div>
 
         <div className="mt-6 text-center">
