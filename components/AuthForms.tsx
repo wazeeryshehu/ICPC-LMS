@@ -195,10 +195,10 @@ export function ActivateForm() {
           <input
             id="activate-staff-id"
             name="staffId"
-            className="input font-mono uppercase tracking-wider"
-            placeholder="P0022"
+            className="input font-mono tracking-wider"
+            placeholder="P0022 or p0022"
             value={staffId}
-            onChange={(e) => setStaffId(e.target.value.toUpperCase())}
+            onChange={(e) => setStaffId(e.target.value)}
             maxLength={20}
             required
           />

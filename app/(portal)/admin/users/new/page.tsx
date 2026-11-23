@@ -25,7 +25,7 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
       <PageHeader
         eyebrow="Staff register"
         title="Add a staff member"
-        description="Register a staff member with their full name. Staff IDs (P####) and official email addresses can be generated automatically, or entered manually to match existing staff records."
+        description="Register a staff member with their full name, Staff ID and official email address. Leave the Staff ID blank to continue the existing numbering sequence; the email address is always entered manually."
         actions={<Link href="/admin/users" className="btn btn-outline btn-sm"><ArrowLeft size={14} /> Back to staff</Link>}
       />
 
@@ -51,7 +51,7 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
       )}
       {error === "email" && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12.5px] text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
-          That official email is already in use, or is not a valid @icpc.gov.ng address.
+          Enter the officer&apos;s official @icpc.gov.ng email address. It must be valid and not already in use.
         </div>
       )}
 
@@ -77,27 +77,27 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
               <input
                 id="staffId"
                 name="staffId"
-                className="input font-mono uppercase"
-                placeholder="Leave blank to auto-generate"
+                className="input font-mono"
+                placeholder="Leave blank to continue the sequence"
                 maxLength={20}
-                autoCapitalize="characters"
                 spellCheck={false}
               />
-              <p className="mt-1 text-[10px] text-muted">Enter the officer&apos;s existing Staff ID where one already exists (e.g. ICPC/HR/0231).</p>
+              <p className="mt-1 text-[10px] text-muted">Enter the officer&apos;s existing Staff ID if they already have one (e.g. ICPC/HR/0231). Case is kept as entered, and the same numbering case (P#### or p####) is used for generated IDs.</p>
             </div>
             <div>
-              <label className="label" htmlFor="email">Official email</label>
+              <label className="label" htmlFor="email">Official email *</label>
               <input
                 id="email"
                 name="email"
                 type="email"
                 className="input"
-                placeholder="Leave blank to auto-generate"
+                required
+                placeholder="amina.bello@icpc.gov.ng"
                 maxLength={80}
                 autoCapitalize="none"
                 spellCheck={false}
               />
-              <p className="mt-1 text-[10px] text-muted">Optional. Enter an existing @icpc.gov.ng address if it differs from firstname.surname.</p>
+              <p className="mt-1 text-[10px] text-muted">Enter the officer&apos;s actual @icpc.gov.ng address. It is not generated from the name.</p>
             </div>
             <div>
               <label className="label" htmlFor="designation">Designation</label>
@@ -150,8 +150,8 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
           <section className="card p-5">
             <div className="flex items-center gap-2 text-[13px] font-semibold text-ink"><BadgeCheck size={16} /> Sign-in identifiers</div>
             <div className="mt-3 space-y-3 text-[11.5px] leading-relaxed text-muted">
-              <div className="flex items-start gap-2"><KeyRound size={14} className="mt-0.5 shrink-0" /><span><strong className="text-ink-soft">Staff ID</strong> — assigned automatically from the next sequential P-number (e.g. P0027), unless you enter an existing Staff ID manually.</span></div>
-              <div className="flex items-start gap-2"><Mail size={14} className="mt-0.5 shrink-0" /><span><strong className="text-ink-soft">Official email</strong> — firstname.surname@icpc.gov.ng, unless you enter an existing address manually. Duplicates receive a numeric suffix when generated.</span></div>
+              <div className="flex items-start gap-2"><KeyRound size={14} className="mt-0.5 shrink-0" /><span><strong className="text-ink-soft">Staff ID</strong> — entered manually when one already exists. If left blank, the next sequential number is assigned using the same case as the latest Staff ID (P0028 or p0028).</span></div>
+              <div className="flex items-start gap-2"><Mail size={14} className="mt-0.5 shrink-0" /><span><strong className="text-ink-soft">Official email</strong> — always entered manually; the portal does not derive addresses from names. Only @icpc.gov.ng addresses are accepted.</span></div>
             </div>
           </section>
           <section className="rounded-xl border border-line bg-panel-2 p-4 text-[11px] leading-relaxed text-muted">

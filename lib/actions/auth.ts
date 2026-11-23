@@ -318,7 +318,7 @@ export async function activateAction(_prev: AuthState, formData: FormData): Prom
 
   const db = getDb();
   const user = db
-    .prepare("SELECT id, staff_id, email, first_name, last_name, status, role FROM users WHERE staff_id = ?")
+    .prepare("SELECT id, staff_id, email, first_name, last_name, status, role FROM users WHERE upper(staff_id) = ?")
     .get(staffId) as
     | { id: number; staff_id: string; email: string; first_name: string; last_name: string; status: string; role: Role }
     | undefined;

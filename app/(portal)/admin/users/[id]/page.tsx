@@ -181,9 +181,8 @@ export default async function AdminUserDetailPage({
                     id="staffId"
                     name="staffId"
                     defaultValue={staff.staff_id}
-                    className="input font-mono uppercase"
+                    className="input font-mono"
                     maxLength={20}
-                    autoCapitalize="characters"
                     spellCheck={false}
                     required
                   />
@@ -192,7 +191,7 @@ export default async function AdminUserDetailPage({
                   <label className="label" htmlFor="email">Official email</label>
                   <input id="email" name="email" type="email" defaultValue={staff.email} className="input" maxLength={80} required />
                   <p className="mt-1 text-[10px] text-muted">
-                    The Staff ID and official email are the officer&apos;s sign-in identifiers. Changes are checked for format and uniqueness, and recorded in the audit trail.
+                    The Staff ID and official email are the officer&apos;s sign-in identifiers. The Staff ID keeps the case entered (P0001 and p0001 are the same ID). Changes are checked for format and uniqueness, and recorded in the audit trail.
                   </p>
                 </div>
                 <div>

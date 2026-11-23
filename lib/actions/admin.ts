@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { randomInt } from "node:crypto";
 import { getDb, nowIso, withTransaction } from "@/lib/db";
 import { getClientIp, logAudit, requireUser } from "@/lib/auth";
-import { hashPassword, isValidOfficialEmail, isValidStaffId, staffEmail, validatePasswordPolicy } from "@/lib/crypto";
+import { hashPassword, isValidOfficialEmail, isValidStaffId, validatePasswordPolicy } from "@/lib/crypto";
 import { createNotification } from "@/lib/achievements";
 import { isSuperAdmin, ROLE_LABELS, type Role } from "@/lib/rbac";
 
@@ -15,23 +15,19 @@ async function requireAdmin() {
 }
 
 function nextStaffId(): string {
-  const row = getDb()
-    .prepare("SELECT staff_id FROM users WHERE staff_id GLOB 'P[0-9][0-9][0-9][0-9]'")
+  const rows = getDb()
+    .prepare("SELECT staff_id FROM users WHERE upper(staff_id) GLOB 'P[0-9][0-9][0-9][0-9]'")
     .all() as Array<{ staff_id: string }>;
-  const max = row.reduce((m, r) => Math.max(m, Number(r.staff_id.replace(/\D/g, "")) || 0), 0);
-  return `P${String(Math.max(max + 1, 1)).padStart(4, "0")}`;
-}
-
-function uniqueEmail(first: string, last: string): string {
-  const db = getDb();
-  const base = staffEmail(first, last);
-  let email = base;
-  let n = 2;
-  while (db.prepare("SELECT 1 FROM users WHERE email = ?").get(email)) {
-    const [local, domain] = base.split("@");
-    email = `${local}${n++}@${domain}`;
+  let max = 0;
+  let prefix = "P";
+  for (const row of rows) {
+    const n = Number(row.staff_id.replace(/\D/g, "")) || 0;
+    if (n >= max) {
+      max = n;
+      prefix = row.staff_id.startsWith("p") ? "p" : "P";
+    }
   }
-  return email;
+  return `${prefix}${String(Math.max(max + 1, 1)).padStart(4, "0")}`;
 }
 
 export async function createUserAction(formData: FormData): Promise<void> {
@@ -40,7 +36,7 @@ export async function createUserAction(formData: FormData): Promise<void> {
   const first = String(formData.get("firstName") ?? "").trim();
   const otherName = String(formData.get("otherName") ?? "").trim();
   const last = String(formData.get("lastName") ?? "").trim();
-  const staffIdInput = String(formData.get("staffId") ?? "").trim().toUpperCase();
+  const staffIdInput = String(formData.get("staffId") ?? "").trim();
   const emailInput = String(formData.get("email") ?? "").trim().toLowerCase();
   const role = String(formData.get("role") ?? "learner") as Role;
   const designation = String(formData.get("designation") ?? "").trim();
@@ -55,11 +51,11 @@ export async function createUserAction(formData: FormData): Promise<void> {
   if (policyError) redirect(`/admin/users/new?error=policy`);
 
   if (staffIdInput && !isValidStaffId(staffIdInput)) redirect("/admin/users/new?error=staffid");
-  if (emailInput && !isValidOfficialEmail(emailInput)) redirect("/admin/users/new?error=email");
+  if (!emailInput || !isValidOfficialEmail(emailInput)) redirect("/admin/users/new?error=email");
   const staffId = staffIdInput || nextStaffId();
-  const email = emailInput || uniqueEmail(first, last);
+  const email = emailInput;
   if (!isValidStaffId(staffId)) redirect("/admin/users/new?error=invalid");
-  if (db.prepare("SELECT 1 FROM users WHERE upper(staff_id) = ?").get(staffId)) redirect("/admin/users/new?error=staffid");
+  if (db.prepare("SELECT 1 FROM users WHERE upper(staff_id) = ?").get(staffId.toUpperCase())) redirect("/admin/users/new?error=staffid");
   if (db.prepare("SELECT 1 FROM users WHERE lower(email) = ?").get(email)) redirect("/admin/users/new?error=email");
   if (unitId && departmentId) {
     const unit = db.prepare("SELECT 1 FROM units WHERE id = ? AND department_id = ?").get(unitId, departmentId);
@@ -113,7 +109,7 @@ export async function updateUserAction(formData: FormData): Promise<void> {
 
   const role = String(formData.get("role") ?? target.role) as Role;
   const otherName = String(formData.get("otherName") ?? target.middle_name ?? "").trim();
-  const staffId = (String(formData.get("staffId") ?? target.staff_id).trim().toUpperCase()) || target.staff_id;
+  const staffId = String(formData.get("staffId") ?? target.staff_id).trim() || target.staff_id;
   const email = (String(formData.get("email") ?? target.email).trim().toLowerCase()) || target.email;
   const designation = String(formData.get("designation") ?? "").trim();
   const departmentId = Number(formData.get("departmentId")) || null;
@@ -130,7 +126,7 @@ export async function updateUserAction(formData: FormData): Promise<void> {
   }
   if (!isValidStaffId(staffId)) redirect(`/admin/users/${userId}?error=staffid`);
   if (!isValidOfficialEmail(email)) redirect(`/admin/users/${userId}?error=email`);
-  if (db.prepare("SELECT 1 FROM users WHERE upper(staff_id) = ? AND id <> ?").get(staffId, userId)) {
+  if (db.prepare("SELECT 1 FROM users WHERE upper(staff_id) = ? AND id <> ?").get(staffId.toUpperCase(), userId)) {
     redirect(`/admin/users/${userId}?error=staffid`);
   }
   if (db.prepare("SELECT 1 FROM users WHERE lower(email) = ? AND id <> ?").get(email, userId)) {

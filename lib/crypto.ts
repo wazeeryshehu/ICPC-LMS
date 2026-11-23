@@ -40,15 +40,6 @@ export function validatePasswordPolicy(password: string): string | null {
   return null;
 }
 
-export function staffEmail(firstName: string, lastName: string): string {
-  const clean = (s: string) =>
-    s
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9-]+/g, "");
-  return `${clean(firstName)}.${clean(lastName)}@icpc.gov.ng`;
-}
-
 export function isValidStaffId(staffId: string): boolean {
   return /^[A-Z0-9][A-Z0-9/-]{1,19}$/.test(staffId.trim().toUpperCase());
 }
