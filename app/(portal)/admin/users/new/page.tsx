@@ -46,7 +46,7 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
       )}
       {error === "staffid" && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12.5px] text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
-          That Staff ID is already assigned, or its format is invalid. Use 2-20 letters, numbers, hyphens or slashes, for example P0027 or ICPC/HR/0231.
+          That Staff ID is already in use, or its format is invalid. Staff IDs are not case-sensitive — P0001 and p0001 refer to the same officer. Use 2-20 letters, numbers, hyphens or slashes, for example P0027 or ICPC/HR/0231.
         </div>
       )}
       {error === "email" && (
@@ -82,7 +82,7 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
                 maxLength={20}
                 spellCheck={false}
               />
-              <p className="mt-1 text-[10px] text-muted">Enter the officer&apos;s existing Staff ID if they already have one (e.g. ICPC/HR/0231). Case is kept as entered, and the same numbering case (P#### or p####) is used for generated IDs.</p>
+              <p className="mt-1 text-[10px] text-muted">Enter the officer&apos;s existing Staff ID if they already have one (e.g. ICPC/HR/0231). Case is kept as entered, P0001 and p0001 are the same ID, and generated IDs follow the numbering case in use (P#### or p####).</p>
             </div>
             <div>
               <label className="label" htmlFor="email">Official email *</label>

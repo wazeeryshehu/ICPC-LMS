@@ -131,7 +131,7 @@ export default async function AdminUserDetailPage({
       )}
       {error === "staffid" && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12.5px] text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
-          That Staff ID is invalid or already belongs to another staff member. Use 2-20 letters, numbers, hyphens or slashes (e.g. P0027 or ICPC/HR/0231).
+          That Staff ID is invalid or already belongs to another staff member. Staff IDs are not case-sensitive — P0001 and p0001 are the same ID. Use 2-20 letters, numbers, hyphens or slashes (e.g. P0027 or ICPC/HR/0231).
         </div>
       )}
       {error === "email" && (
