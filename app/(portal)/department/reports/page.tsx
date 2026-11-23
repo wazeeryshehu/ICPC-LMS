@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BarChart3, Download, FileSpreadsheet, FileText, Search } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { formatDate, humanStatus, percent } from "@/lib/format";
+import { formatDate, fullName, humanStatus, percent } from "@/lib/format";
 import { PageHeader, StatCard } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +48,7 @@ export default async function DepartmentReportsPage({
   const rows = db
     .prepare(
       `SELECT e.id, e.status AS enrollment_status, e.progress_percent, e.enrolled_at, e.completed_at,
-              u.staff_id, u.first_name, u.last_name, c.title AS course_title, c.is_mandatory, cc.name AS category_name,
+              u.staff_id, u.first_name, u.middle_name, u.last_name, c.title AS course_title, c.is_mandatory, cc.name AS category_name,
               (SELECT ROUND(AVG(at.percent), 1) FROM assessment_attempts at JOIN assessments a ON a.id = at.assessment_id
                 WHERE at.user_id = u.id AND a.course_id = c.id AND at.status = 'graded') AS avg_score,
               (SELECT ct.cert_no FROM certificates ct WHERE ct.user_id = u.id AND ct.course_id = c.id AND ct.revoked = 0 LIMIT 1) AS cert_no
@@ -65,6 +65,7 @@ export default async function DepartmentReportsPage({
     completed_at: string | null;
     staff_id: string;
     first_name: string;
+    middle_name: string | null;
     last_name: string;
     course_title: string;
     is_mandatory: number;
@@ -149,7 +150,7 @@ export default async function DepartmentReportsPage({
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id}>
-                  <td><div className="font-semibold text-ink">{r.first_name} {r.last_name}</div><div className="text-[10px] text-muted">{r.staff_id}</div></td>
+                  <td><div className="font-semibold text-ink">{fullName(r.first_name, r.last_name, r.middle_name)}</div><div className="text-[10px] text-muted">{r.staff_id}</div></td>
                   <td className="max-w-[280px]"><div className="truncate text-[11.5px] text-ink-soft">{r.course_title}</div><div className="text-[10px] text-muted">{r.category_name}</div></td>
                   <td>{r.is_mandatory ? <span className="chip chip-gold">Mandatory</span> : <span className="chip chip-gray">Elective</span>}</td>
                   <td><span className={`chip ${r.enrollment_status === "completed" ? "chip-green" : "chip-gold"}`}>{humanStatus(r.enrollment_status)}</span></td>

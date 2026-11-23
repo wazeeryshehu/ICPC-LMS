@@ -27,7 +27,7 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const user = await requireUser();
   const db = getDb();
-  const name = fullName(user.first_name, user.last_name);
+  const name = fullName(user.first_name, user.last_name, user.middle_name);
 
   const enrollmentStats = db
     .prepare(

@@ -51,7 +51,7 @@ export default async function CourseDetailPage({
   const course = db
     .prepare(
       `SELECT c.*, cat.name AS category_name, cat.slug AS category_slug,
-              TRIM(COALESCE(i.first_name, '') || ' ' || COALESCE(i.last_name, '')) AS instructor_name,
+              TRIM(COALESCE(i.first_name, '') || ' ' || COALESCE(i.middle_name || ' ', '') || COALESCE(i.last_name, '')) AS instructor_name,
               i.designation AS instructor_designation, i.email AS instructor_email, i.id AS instructor_id,
               d.name AS department_name
        FROM courses c
@@ -143,11 +143,11 @@ export default async function CourseDetailPage({
     .get(courseId) as { n: number; avg: number | null };
   const feedback = db
     .prepare(
-      `SELECT f.rating, f.comments, f.created_at, u.first_name, u.last_name FROM course_feedback f
+      `SELECT f.rating, f.comments, f.created_at, u.first_name, u.middle_name, u.last_name FROM course_feedback f
        JOIN users u ON u.id = f.user_id WHERE f.course_id = ? AND f.comments IS NOT NULL AND f.comments != ''
        ORDER BY f.created_at DESC LIMIT 3`
     )
-    .all(courseId) as Array<{ rating: number; comments: string; created_at: string; first_name: string; last_name: string }>;
+    .all(courseId) as Array<{ rating: number; comments: string; created_at: string; first_name: string; middle_name: string | null; last_name: string }>;
   const myFeedback = enrollment
     ? (db
         .prepare("SELECT rating, comments FROM course_feedback WHERE course_id = ? AND user_id = ?")
@@ -402,7 +402,7 @@ export default async function CourseDetailPage({
                 {feedback.map((f) => (
                   <li key={`${f.created_at}-${f.first_name}`} className="rounded-lg bg-panel-2 p-3">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-ink">{fullName(f.first_name, f.last_name)}</span>
+                      <span className="font-semibold text-ink">{fullName(f.first_name, f.last_name, f.middle_name)}</span>
                       <span className="text-[#2f7cd6]">{"★".repeat(f.rating)}</span>
                     </div>
                     <p className="mt-1 text-[12px] leading-relaxed text-muted">{f.comments}</p>

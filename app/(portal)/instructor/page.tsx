@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BarChart3, BookOpen, ClipboardCheck, FileQuestion, GraduationCap, Plus, Star, TrendingUp } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { formatDateTime, humanStatus, timeAgo } from "@/lib/format";
+import { formatDateTime, fullName, humanStatus, timeAgo } from "@/lib/format";
 import { isAdministrator } from "@/lib/rbac";
 import { EmptyState, PageHeader, ProgressBar, StatCard } from "@/components/ui";
 
@@ -44,7 +44,7 @@ export default async function InstructorDashboard() {
 
   const pendingGrading = db
     .prepare(
-      `SELECT at.id, at.submitted_at, u.first_name, u.last_name, u.staff_id, a.title AS assessment_title,
+      `SELECT at.id, at.submitted_at, u.first_name, u.middle_name, u.last_name, u.staff_id, a.title AS assessment_title,
               c.title AS course_title
        FROM assessment_attempts at
        JOIN assessments a ON a.id = at.assessment_id
@@ -57,6 +57,7 @@ export default async function InstructorDashboard() {
     id: number;
     submitted_at: string | null;
     first_name: string;
+    middle_name: string | null;
     last_name: string;
     staff_id: string;
     assessment_title: string;
@@ -188,7 +189,7 @@ export default async function InstructorDashboard() {
               {pendingGrading.slice(0, 6).map((p) => (
                 <Link key={p.id} href={`/instructor/grading/${p.id}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-surface-2">
                   <div className="min-w-0">
-                    <div className="truncate text-[12.5px] font-semibold text-ink">{p.first_name} {p.last_name} <span className="font-normal text-muted">({p.staff_id})</span></div>
+                    <div className="truncate text-[12.5px] font-semibold text-ink">{fullName(p.first_name, p.last_name, p.middle_name)} <span className="font-normal text-muted">({p.staff_id})</span></div>
                     <div className="truncate text-[10.5px] text-muted">{p.assessment_title} · {p.course_title}</div>
                   </div>
                   <span className="shrink-0 text-[10px] text-muted">{p.submitted_at ? timeAgo(p.submitted_at) : ""}</span>

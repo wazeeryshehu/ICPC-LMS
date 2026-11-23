@@ -18,8 +18,8 @@ export function initials(first: string, last: string): string {
   return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
 }
 
-export function fullName(first: string, last: string): string {
-  return `${first} ${last}`;
+export function fullName(first: string, last: string, other?: string | null): string {
+  return [first, other, last].filter(Boolean).join(" ");
 }
 
 export function formatNumber(n: number | null | undefined): string {

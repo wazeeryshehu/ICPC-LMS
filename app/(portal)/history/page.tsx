@@ -69,7 +69,7 @@ export default async function HistoryPage() {
       <PageHeader
         eyebrow="Learning record"
         title="My Learning History"
-        description={`Official training record for ${fullName(user.first_name, user.last_name)} (${user.staff_id}). Includes enrolments, progress and assessment attempts.`}
+        description={`Official training record for ${fullName(user.first_name, user.last_name, user.middle_name)} (${user.staff_id}). Includes enrolments, progress and assessment attempts.`}
         actions={
           <>
             <Link href="/transcript" className="btn btn-outline btn-sm"><Download size={13} /> Transcript (print)</Link>

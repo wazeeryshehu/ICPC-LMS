@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Award, BadgeCheck, Download, ExternalLink, QrCode, ShieldCheck, Sparkles } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { formatDate } from "@/lib/format";
+import { formatDate, fullName } from "@/lib/format";
 import { EmptyState, PageHeader, StatCard } from "@/components/ui";
 import { IcpcLogo } from "@/components/Logo";
 
@@ -73,7 +73,7 @@ export default async function CertificatesPage() {
                 <div className="mt-1 font-display text-[17px] font-bold tracking-wide">CERTIFICATE OF COMPLETION</div>
                 <p className="mt-3 text-[11px] text-white/55">This is to certify that</p>
                 <div className="font-display text-[20px] font-bold leading-tight">
-                  {user.first_name} {user.last_name}
+                  {fullName(user.first_name, user.last_name, user.middle_name)}
                 </div>
                 <p className="mt-1 text-[11px] text-white/55">has successfully completed</p>
                 <h2 className="mt-0.5 text-[13.5px] font-semibold leading-snug text-[#cfe2fb]">{cert.title}</h2>

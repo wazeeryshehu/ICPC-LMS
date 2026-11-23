@@ -21,7 +21,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cer
   const db = getDb();
   const cert = db
     .prepare(
-      `SELECT ct.*, u.first_name, u.last_name, u.staff_id, c.title, c.duration_minutes, c.cpd_points, cat.name AS category
+      `SELECT ct.*, u.first_name, u.middle_name, u.last_name, u.staff_id, c.title, c.duration_minutes, c.cpd_points, cat.name AS category
        FROM certificates ct
        JOIN users u ON u.id = ct.user_id
        JOIN courses c ON c.id = ct.course_id
@@ -37,6 +37,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cer
         grade: string;
         issued_at: string;
         first_name: string;
+        middle_name: string | null;
         last_name: string;
         staff_id: string;
         title: string;
@@ -116,7 +117,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cer
     color: muted,
   });
 
-  const name = ascii(`${cert.first_name} ${cert.last_name}`);
+  const name = ascii([cert.first_name, cert.middle_name, cert.last_name].filter(Boolean).join(" "));
   page.drawText(name, {
     x: width / 2 - timesBold.widthOfTextAtSize(name, 28) / 2,
     y: height - 316,

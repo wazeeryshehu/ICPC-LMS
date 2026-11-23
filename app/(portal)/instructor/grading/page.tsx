@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ClipboardCheck, Clock, Search } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { formatDateTime, humanStatus, timeAgo } from "@/lib/format";
+import { formatDateTime, fullName, humanStatus, timeAgo } from "@/lib/format";
 import { isAdministrator } from "@/lib/rbac";
 import { EmptyState, PageHeader, StatCard } from "@/components/ui";
 
@@ -46,7 +46,7 @@ export default async function GradingQueuePage({
       `SELECT at.id, at.status, at.score, at.max_score, at.percent, at.passed, at.submitted_at,
               a.title AS assessment_title, a.type AS assessment_type, a.pass_mark,
               c.title AS course_title, c.id AS course_id,
-              u.first_name, u.last_name, u.staff_id,
+              u.first_name, u.middle_name, u.last_name, u.staff_id,
               d.name AS department_name
        FROM assessment_attempts at
        JOIN assessments a ON a.id = at.assessment_id
@@ -70,6 +70,7 @@ export default async function GradingQueuePage({
     course_title: string;
     course_id: number;
     first_name: string;
+    middle_name: string | null;
     last_name: string;
     staff_id: string;
     department_name: string | null;
@@ -142,7 +143,7 @@ export default async function GradingQueuePage({
                 {attempts.map((a) => (
                   <tr key={a.id}>
                     <td>
-                      <div className="font-semibold text-ink">{a.first_name} {a.last_name}</div>
+                      <div className="font-semibold text-ink">{fullName(a.first_name, a.last_name, a.middle_name)}</div>
                       <div className="text-[10.5px] text-muted">{a.staff_id}{a.department_name ? ` · ${a.department_name}` : ""}</div>
                     </td>
                     <td>

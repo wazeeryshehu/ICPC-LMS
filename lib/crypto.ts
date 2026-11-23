@@ -50,7 +50,7 @@ export function staffEmail(firstName: string, lastName: string): string {
 }
 
 export function isValidStaffId(staffId: string): boolean {
-  return /^P\d{4}$/.test(staffId.trim().toUpperCase());
+  return /^[A-Z0-9][A-Z0-9/-]{1,19}$/.test(staffId.trim().toUpperCase());
 }
 
 export function isValidOfficialEmail(email: string): boolean {

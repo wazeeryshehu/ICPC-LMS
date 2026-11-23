@@ -101,11 +101,11 @@ export default async function AdminDashboard() {
 
   const legalQueue = db
     .prepare(
-      `SELECT c.id, c.title, c.updated_at, u.first_name, u.last_name
+      `SELECT c.id, c.title, c.updated_at, u.first_name, u.middle_name, u.last_name
        FROM courses c LEFT JOIN users u ON u.id = c.instructor_id
        WHERE c.legal_review_status IN ('pending','demo_pending') ORDER BY c.updated_at LIMIT 5`
     )
-    .all() as Array<{ id: number; title: string; updated_at: string; first_name: string | null; last_name: string | null }>;
+    .all() as Array<{ id: number; title: string; updated_at: string; first_name: string | null; middle_name: string | null; last_name: string | null }>;
 
   const mandatory = db
     .prepare(
@@ -288,7 +288,7 @@ export default async function AdminDashboard() {
               <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3">
                 <div>
                   <div className="text-[12.5px] font-semibold text-ink">{c.title}</div>
-                  <div className="text-[10.5px] text-muted">Submitted by {c.first_name ? `${c.first_name} ${c.last_name}` : "system"} · {timeAgo(c.updated_at)}</div>
+                  <div className="text-[10.5px] text-muted">Submitted by {c.first_name ? [c.first_name, c.middle_name, c.last_name].filter(Boolean).join(" ") : "system"} · {timeAgo(c.updated_at)}</div>
                 </div>
                 <span className="chip chip-gold">Pending review</span>
               </div>

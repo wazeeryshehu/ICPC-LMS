@@ -16,6 +16,7 @@ export default async function PortalLayout({ children }: { children: React.React
         id: user.id,
         staffId: user.staff_id,
         firstName: user.first_name,
+        middleName: user.middle_name,
         lastName: user.last_name,
         email: user.email,
         role: user.role,

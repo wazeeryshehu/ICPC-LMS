@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { formatDate, gradeFor } from "@/lib/format";
+import { formatDate, fullName, gradeFor } from "@/lib/format";
 import { IcpcLogo } from "@/components/Logo";
 import { PrintButton } from "@/components/PrintButton";
 
@@ -79,7 +79,7 @@ export default async function TranscriptPage() {
         <section className="mt-5 grid gap-4 text-[11.5px] sm:grid-cols-2">
           <div>
             <div className="text-[9px] font-bold uppercase tracking-wider text-[#2f5da8]">Staff member</div>
-            <div className="mt-1 font-display text-[18px] font-bold text-[#101d33]">{user.first_name} {user.last_name}</div>
+            <div className="mt-1 font-display text-[18px] font-bold text-[#101d33]">{fullName(user.first_name, user.last_name, user.middle_name)}</div>
             <div className="text-[#495a72]">Staff ID: {user.staff_id}</div>
             <div className="text-[#495a72]">{user.email}</div>
             <div className="text-[#495a72]">{user.designation ?? "Staff"} · {user.department_name ?? "ICPC"}</div>

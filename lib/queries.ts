@@ -14,7 +14,7 @@ const BASE = `
   SELECT c.id, c.slug, c.title, c.summary, c.level, c.duration_minutes AS durationMinutes,
          c.is_mandatory AS isMandatory, c.cpd_points AS cpdPoints,
          c.legal_review_status AS legalReview, cat.name AS categoryName, cat.id AS categoryId,
-         TRIM(COALESCE(i.first_name, '') || ' ' || COALESCE(i.last_name, '')) AS instructorName,
+         TRIM(COALESCE(i.first_name, '') || ' ' || COALESCE(i.middle_name || ' ', '') || COALESCE(i.last_name, '')) AS instructorName,
          (SELECT COUNT(*) FROM lessons l JOIN modules m ON m.id = l.module_id WHERE m.course_id = c.id) AS lessonCount,
          (SELECT COUNT(*) FROM modules m WHERE m.course_id = c.id) AS moduleCount,
          e.progress_percent AS progress, e.status AS enrollmentStatus,

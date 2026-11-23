@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BarChart3, Building2, GraduationCap, Send, Users } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { formatDate, percent } from "@/lib/format";
+import { formatDate, fullName, percent } from "@/lib/format";
 import { isAdministrator } from "@/lib/rbac";
 import { PageHeader, ProgressBar, StatCard } from "@/components/ui";
 import { assignCourseAction } from "@/lib/actions/admin";
@@ -39,7 +39,7 @@ export default async function DepartmentPage({
 
   const staff = db
     .prepare(
-      `SELECT u.id, u.staff_id, u.first_name, u.last_name, u.role, u.designation, u.status, u.last_login_at,
+      `SELECT u.id, u.staff_id, u.first_name, u.middle_name, u.last_name, u.role, u.designation, u.status, u.last_login_at,
               (SELECT COUNT(*) FROM enrollments e WHERE e.user_id = u.id) AS enrolled,
               (SELECT COUNT(*) FROM enrollments e WHERE e.user_id = u.id AND e.status = 'completed') AS completed,
               (SELECT ROUND(AVG(e.progress_percent)) FROM enrollments e WHERE e.user_id = u.id) AS avg_progress,
@@ -50,6 +50,7 @@ export default async function DepartmentPage({
     id: number;
     staff_id: string;
     first_name: string;
+    middle_name: string | null;
     last_name: string;
     role: string;
     designation: string | null;
@@ -154,7 +155,7 @@ export default async function DepartmentPage({
                   {staff.map((s) => (
                     <tr key={s.id}>
                       <td>
-                        <div className="text-[12px] font-semibold text-ink">{s.first_name} {s.last_name}</div>
+                        <div className="text-[12px] font-semibold text-ink">{fullName(s.first_name, s.last_name, s.middle_name)}</div>
                         <div className="text-[10px] text-muted">{s.staff_id}{s.designation ? ` · ${s.designation}` : ""}</div>
                       </td>
                       <td className="text-[11.5px]">{s.enrolled}</td>

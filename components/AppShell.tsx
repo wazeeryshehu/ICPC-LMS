@@ -36,6 +36,7 @@ interface ShellUser {
   id: number;
   staffId: string;
   firstName: string;
+  middleName: string | null;
   lastName: string;
   email: string;
   role: Role;
@@ -170,6 +171,7 @@ export function AppShell({
   const nav = buildNav(user.role);
   const title = titleFor(pathname);
   const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+  const displayName = [user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ");
   const today = new Date().toLocaleDateString("en-NG", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 
   function isActive(item: NavItem) {
@@ -201,7 +203,7 @@ export function AppShell({
         </div>
         <div className="min-w-0">
           <div className="truncate text-[13px] font-semibold text-white">
-            {user.firstName} {user.lastName}
+            {displayName}
           </div>
           <div className="truncate text-[10.5px] text-white/50">{ROLE_LABELS[user.role]}</div>
         </div>
@@ -335,7 +337,7 @@ export function AppShell({
                 <div className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-xl border border-line bg-panel shadow-lift">
                   <div className="border-b border-line bg-panel-2 px-4 py-3">
                     <div className="text-[13px] font-semibold text-ink">
-                      {user.firstName} {user.lastName}
+                      {displayName}
                     </div>
                     <div className="mt-0.5 text-[11px] text-muted">{user.email}</div>
                     <div className="mt-2 flex items-center gap-1.5 text-[10.5px] text-muted">

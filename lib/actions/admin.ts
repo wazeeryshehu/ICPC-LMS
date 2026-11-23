@@ -16,7 +16,7 @@ async function requireAdmin() {
 
 function nextStaffId(): string {
   const row = getDb()
-    .prepare("SELECT staff_id FROM users WHERE staff_id LIKE 'P%'")
+    .prepare("SELECT staff_id FROM users WHERE staff_id GLOB 'P[0-9][0-9][0-9][0-9]'")
     .all() as Array<{ staff_id: string }>;
   const max = row.reduce((m, r) => Math.max(m, Number(r.staff_id.replace(/\D/g, "")) || 0), 0);
   return `P${String(Math.max(max + 1, 1)).padStart(4, "0")}`;
@@ -38,7 +38,10 @@ export async function createUserAction(formData: FormData): Promise<void> {
   const actor = await requireAdmin();
   const db = getDb();
   const first = String(formData.get("firstName") ?? "").trim();
+  const otherName = String(formData.get("otherName") ?? "").trim();
   const last = String(formData.get("lastName") ?? "").trim();
+  const staffIdInput = String(formData.get("staffId") ?? "").trim().toUpperCase();
+  const emailInput = String(formData.get("email") ?? "").trim().toLowerCase();
   const role = String(formData.get("role") ?? "learner") as Role;
   const designation = String(formData.get("designation") ?? "").trim();
   const departmentId = Number(formData.get("departmentId")) || null;
@@ -46,14 +49,18 @@ export async function createUserAction(formData: FormData): Promise<void> {
   const phone = String(formData.get("phone") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  if (!first || !last || !ROLES.includes(role)) redirect("/admin/users/new?error=invalid");
+  if (!first || !last || otherName.length > 60 || !ROLES.includes(role)) redirect("/admin/users/new?error=invalid");
   if (role === "super_admin" && !isSuperAdmin(actor.role)) redirect("/admin/users/new?error=privilege");
   const policyError = validatePasswordPolicy(password);
   if (policyError) redirect(`/admin/users/new?error=policy`);
 
-  const staffId = nextStaffId();
-  const email = uniqueEmail(first, last);
-  if (!isValidStaffId(staffId) || !isValidOfficialEmail(email)) redirect("/admin/users/new?error=invalid");
+  if (staffIdInput && !isValidStaffId(staffIdInput)) redirect("/admin/users/new?error=staffid");
+  if (emailInput && !isValidOfficialEmail(emailInput)) redirect("/admin/users/new?error=email");
+  const staffId = staffIdInput || nextStaffId();
+  const email = emailInput || uniqueEmail(first, last);
+  if (!isValidStaffId(staffId)) redirect("/admin/users/new?error=invalid");
+  if (db.prepare("SELECT 1 FROM users WHERE upper(staff_id) = ?").get(staffId)) redirect("/admin/users/new?error=staffid");
+  if (db.prepare("SELECT 1 FROM users WHERE lower(email) = ?").get(email)) redirect("/admin/users/new?error=email");
   if (unitId && departmentId) {
     const unit = db.prepare("SELECT 1 FROM units WHERE id = ? AND department_id = ?").get(unitId, departmentId);
     if (!unit) redirect("/admin/users/new?error=invalid");
@@ -61,10 +68,10 @@ export async function createUserAction(formData: FormData): Promise<void> {
 
   const info = db
     .prepare(
-      `INSERT INTO users(staff_id, email, password_hash, first_name, last_name, role, designation, department_id, unit_id, phone,
-        status, must_change_password, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+      `INSERT INTO users(staff_id, email, password_hash, first_name, middle_name, last_name, role, designation, department_id, unit_id, phone,
+        status, must_change_password, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
     )
-    .run(staffId, email, hashPassword(password), first, last, role, designation || null, departmentId, unitId, phone || null, "active", 1, nowIso(), nowIso());
+    .run(staffId, email, hashPassword(password), first, otherName || null, last, role, designation || null, departmentId, unitId, phone || null, "active", 1, nowIso(), nowIso());
   const userId = Number(info.lastInsertRowid);
 
   createNotification({
@@ -80,7 +87,7 @@ export async function createUserAction(formData: FormData): Promise<void> {
     action: "user.created",
     entity: "user",
     entityId: userId,
-    details: `${first} ${last} (${staffId}, ${ROLE_LABELS[role]}) created`,
+    details: `${[first, otherName, last].filter(Boolean).join(" ")} (${staffId}, ${ROLE_LABELS[role]}) created`,
     ip: await getClientIp(),
   });
   redirect(`/admin/users?created=${encodeURIComponent(`${staffId}|${email}`)}`);
@@ -91,23 +98,43 @@ export async function updateUserAction(formData: FormData): Promise<void> {
   const userId = Number(formData.get("userId"));
   const db = getDb();
   const target = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as
-    | { id: number; role: Role; status: string; staff_id: string; first_name: string; last_name: string }
+    | {
+        id: number;
+        role: Role;
+        status: string;
+        staff_id: string;
+        email: string;
+        first_name: string;
+        middle_name: string | null;
+        last_name: string;
+      }
     | undefined;
   if (!target) redirect("/admin/users");
 
   const role = String(formData.get("role") ?? target.role) as Role;
+  const otherName = String(formData.get("otherName") ?? target.middle_name ?? "").trim();
+  const staffId = (String(formData.get("staffId") ?? target.staff_id).trim().toUpperCase()) || target.staff_id;
+  const email = (String(formData.get("email") ?? target.email).trim().toLowerCase()) || target.email;
   const designation = String(formData.get("designation") ?? "").trim();
   const departmentId = Number(formData.get("departmentId")) || null;
   const unitId = Number(formData.get("unitId")) || null;
   const phone = String(formData.get("phone") ?? "").trim();
   const status = String(formData.get("status") ?? target.status);
 
-  if (!ROLES.includes(role)) redirect(`/admin/users/${userId}?error=invalid`);
+  if (!ROLES.includes(role) || otherName.length > 60) redirect(`/admin/users/${userId}?error=invalid`);
   if ((role === "super_admin" || target.role === "super_admin") && !isSuperAdmin(actor.role)) {
     redirect(`/admin/users/${userId}?error=privilege`);
   }
   if (target.id === actor.id && (status !== "active" || role !== target.role)) {
     redirect(`/admin/users/${userId}?error=self`);
+  }
+  if (!isValidStaffId(staffId)) redirect(`/admin/users/${userId}?error=staffid`);
+  if (!isValidOfficialEmail(email)) redirect(`/admin/users/${userId}?error=email`);
+  if (db.prepare("SELECT 1 FROM users WHERE upper(staff_id) = ? AND id <> ?").get(staffId, userId)) {
+    redirect(`/admin/users/${userId}?error=staffid`);
+  }
+  if (db.prepare("SELECT 1 FROM users WHERE lower(email) = ? AND id <> ?").get(email, userId)) {
+    redirect(`/admin/users/${userId}?error=email`);
   }
   if (unitId && departmentId) {
     const unit = db.prepare("SELECT 1 FROM units WHERE id = ? AND department_id = ?").get(unitId, departmentId);
@@ -115,18 +142,30 @@ export async function updateUserAction(formData: FormData): Promise<void> {
   }
 
   db.prepare(
-    `UPDATE users SET role=?, designation=?, department_id=?, unit_id=?, phone=?, status=?, updated_at=? WHERE id=?`
-  ).run(role, designation || null, departmentId, unitId, phone || null, status, nowIso(), userId);
+    `UPDATE users SET staff_id=?, email=?, middle_name=?, role=?, designation=?, department_id=?, unit_id=?, phone=?, status=?, updated_at=? WHERE id=?`
+  ).run(staffId, email, otherName || null, role, designation || null, departmentId, unitId, phone || null, status, nowIso(), userId);
   if (status !== "active") {
     db.prepare("DELETE FROM app_sessions WHERE user_id = ?").run(userId);
   }
+  if (staffId !== target.staff_id || email !== target.email) {
+    createNotification({
+      userId,
+      title: "Sign-in details updated",
+      body: `An administrator updated your staff record. Staff ID: ${staffId}. Official email: ${email}. Use these details at sign-in.`,
+      type: "warning",
+      link: "/profile",
+    });
+  }
+  const changes = [`role ${role}`, `status ${status}`];
+  if (staffId !== target.staff_id) changes.push(`staff ID ${target.staff_id} -> ${staffId}`);
+  if (email !== target.email) changes.push(`email ${target.email} -> ${email}`);
   logAudit({
     actorId: actor.id,
     actorName: `${actor.first_name} ${actor.last_name}`,
     action: "user.updated",
     entity: "user",
     entityId: userId,
-    details: `${target.staff_id}: role ${role}, status ${status}`,
+    details: `${target.staff_id}: ${changes.join(", ")}`,
     ip: await getClientIp(),
   });
   redirect(`/admin/users/${userId}?saved=1`);

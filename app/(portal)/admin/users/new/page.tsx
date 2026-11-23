@@ -25,7 +25,7 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
       <PageHeader
         eyebrow="Staff register"
         title="Add a staff member"
-        description="Staff IDs (P####) and official email addresses (firstname.surname@icpc.gov.ng) are generated automatically and are required at sign-in."
+        description="Register a staff member with their full name. Staff IDs (P####) and official email addresses can be generated automatically, or entered manually to match existing staff records."
         actions={<Link href="/admin/users" className="btn btn-outline btn-sm"><ArrowLeft size={14} /> Back to staff</Link>}
       />
 
@@ -44,6 +44,16 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
           Please complete the required fields and choose a valid department / unit combination.
         </div>
       )}
+      {error === "staffid" && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12.5px] text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+          That Staff ID is already assigned, or its format is invalid. Use 2-20 letters, numbers, hyphens or slashes, for example P0027 or ICPC/HR/0231.
+        </div>
+      )}
+      {error === "email" && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12.5px] text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+          That official email is already in use, or is not a valid @icpc.gov.ng address.
+        </div>
+      )}
 
       <form action={createUserAction} className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         <div className="card space-y-4 p-5">
@@ -51,11 +61,43 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor="firstName">First name *</label>
-              <input id="firstName" name="firstName" className="input" required placeholder="Amina" />
+              <input id="firstName" name="firstName" className="input" required placeholder="Amina" maxLength={60} />
+            </div>
+            <div>
+              <label className="label" htmlFor="otherName">Other name <span className="font-normal text-muted">(optional)</span></label>
+              <input id="otherName" name="otherName" className="input" placeholder="Chidinma" maxLength={60} />
+              <p className="mt-1 text-[10px] text-muted">Middle or other name for officers with three or more names.</p>
             </div>
             <div>
               <label className="label" htmlFor="lastName">Surname *</label>
-              <input id="lastName" name="lastName" className="input" required placeholder="Bello" />
+              <input id="lastName" name="lastName" className="input" required placeholder="Bello" maxLength={60} />
+            </div>
+            <div>
+              <label className="label" htmlFor="staffId">Staff ID</label>
+              <input
+                id="staffId"
+                name="staffId"
+                className="input font-mono uppercase"
+                placeholder="Leave blank to auto-generate"
+                maxLength={20}
+                autoCapitalize="characters"
+                spellCheck={false}
+              />
+              <p className="mt-1 text-[10px] text-muted">Enter the officer&apos;s existing Staff ID where one already exists (e.g. ICPC/HR/0231).</p>
+            </div>
+            <div>
+              <label className="label" htmlFor="email">Official email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                className="input"
+                placeholder="Leave blank to auto-generate"
+                maxLength={80}
+                autoCapitalize="none"
+                spellCheck={false}
+              />
+              <p className="mt-1 text-[10px] text-muted">Optional. Enter an existing @icpc.gov.ng address if it differs from firstname.surname.</p>
             </div>
             <div>
               <label className="label" htmlFor="designation">Designation</label>
@@ -106,10 +148,10 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
 
         <aside className="space-y-4">
           <section className="card p-5">
-            <div className="flex items-center gap-2 text-[13px] font-semibold text-ink"><BadgeCheck size={16} /> Generated identifiers</div>
+            <div className="flex items-center gap-2 text-[13px] font-semibold text-ink"><BadgeCheck size={16} /> Sign-in identifiers</div>
             <div className="mt-3 space-y-3 text-[11.5px] leading-relaxed text-muted">
-              <div className="flex items-start gap-2"><KeyRound size={14} className="mt-0.5 shrink-0" /><span><strong className="text-ink-soft">Staff ID</strong> — assigned automatically from the next sequential P-number in the staff register (e.g. P0027).</span></div>
-              <div className="flex items-start gap-2"><Mail size={14} className="mt-0.5 shrink-0" /><span><strong className="text-ink-soft">Official email</strong> — firstname.surname@icpc.gov.ng. Duplicates receive a numeric suffix.</span></div>
+              <div className="flex items-start gap-2"><KeyRound size={14} className="mt-0.5 shrink-0" /><span><strong className="text-ink-soft">Staff ID</strong> — assigned automatically from the next sequential P-number (e.g. P0027), unless you enter an existing Staff ID manually.</span></div>
+              <div className="flex items-start gap-2"><Mail size={14} className="mt-0.5 shrink-0" /><span><strong className="text-ink-soft">Official email</strong> — firstname.surname@icpc.gov.ng, unless you enter an existing address manually. Duplicates receive a numeric suffix when generated.</span></div>
             </div>
           </section>
           <section className="rounded-xl border border-line bg-panel-2 p-4 text-[11px] leading-relaxed text-muted">

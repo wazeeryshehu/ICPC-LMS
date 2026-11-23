@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BarChart3, Download, FileSpreadsheet, FileText, Search } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { formatDate, humanStatus, percent } from "@/lib/format";
+import { formatDate, fullName, humanStatus, percent } from "@/lib/format";
 import { isAdministrator } from "@/lib/rbac";
 import { PageHeader, StatCard } from "@/components/ui";
 
@@ -55,7 +55,7 @@ export default async function AdminReportsPage({
   const rows = db
     .prepare(
       `SELECT e.id, e.status AS enrollment_status, e.progress_percent, e.enrolled_at, e.completed_at,
-              u.staff_id, u.first_name, u.last_name, u.email,
+              u.staff_id, u.first_name, u.middle_name, u.last_name, u.email,
               d.name AS department_name, c.title AS course_title, c.level, cc.name AS category_name,
               (SELECT ROUND(AVG(at.percent), 1) FROM assessment_attempts at JOIN assessments a ON a.id = at.assessment_id
                 WHERE at.user_id = u.id AND a.course_id = c.id AND at.status = 'graded') AS avg_score,
@@ -76,6 +76,7 @@ export default async function AdminReportsPage({
     completed_at: string | null;
     staff_id: string;
     first_name: string;
+    middle_name: string | null;
     last_name: string;
     email: string;
     department_name: string | null;
@@ -203,7 +204,7 @@ export default async function AdminReportsPage({
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id}>
-                  <td><div className="font-semibold text-ink">{r.first_name} {r.last_name}</div><div className="text-[10px] text-muted">{r.staff_id}</div></td>
+                  <td><div className="font-semibold text-ink">{fullName(r.first_name, r.last_name, r.middle_name)}</div><div className="text-[10px] text-muted">{r.staff_id}</div></td>
                   <td className="text-[11px] text-muted">{r.department_name ?? "—"}</td>
                   <td className="max-w-[260px]"><div className="truncate text-[11.5px] text-ink-soft">{r.course_title}</div><div className="text-[10px] text-muted">{r.category_name} · {r.level}</div></td>
                   <td><span className={`chip ${r.enrollment_status === "completed" ? "chip-green" : "chip-gold"}`}>{humanStatus(r.enrollment_status)}</span></td>

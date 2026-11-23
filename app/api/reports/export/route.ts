@@ -11,6 +11,7 @@ export const runtime = "nodejs";
 interface ExportRow {
   staff_id: string;
   first_name: string;
+  middle_name: string | null;
   last_name: string;
   email: string;
   department_name: string | null;
@@ -114,7 +115,7 @@ export async function GET(request: Request) {
 
   const rows = db
     .prepare(
-      `SELECT u.staff_id, u.first_name, u.last_name, u.email, d.name AS department_name,
+      `SELECT u.staff_id, u.first_name, u.middle_name, u.last_name, u.email, d.name AS department_name,
               c.title AS course_title, cc.name AS category_name, c.level,
               e.status AS enrollment_status, e.progress_percent, e.enrolled_at, e.completed_at,
               (SELECT ROUND(AVG(at.percent), 1) FROM assessment_attempts at JOIN assessments a ON a.id = at.assessment_id
@@ -153,12 +154,13 @@ export async function GET(request: Request) {
   ];
 
   if (format === "csv") {
-    const header = ["Staff ID", "First name", "Surname", "Official email", "Department", "Course", "Category", "Level", "Status", "Progress %", "Average score %", "Certificate number", "Enrolled", "Completed"];
+    const header = ["Staff ID", "First name", "Other name", "Surname", "Official email", "Department", "Course", "Category", "Level", "Status", "Progress %", "Average score %", "Certificate number", "Enrolled", "Completed"];
     const lines = [
       header,
       ...rows.map((r) => [
         r.staff_id,
         r.first_name,
+        r.middle_name ?? "",
         r.last_name,
         r.email,
         r.department_name ?? "",
@@ -201,6 +203,7 @@ export async function GET(request: Request) {
     sheet.columns = [
       { header: "Staff ID", key: "staff_id", width: 12 },
       { header: "First name", key: "first_name", width: 16 },
+      { header: "Other name", key: "middle_name", width: 16 },
       { header: "Surname", key: "last_name", width: 18 },
       { header: "Official email", key: "email", width: 34 },
       { header: "Department", key: "department_name", width: 30 },
@@ -219,6 +222,7 @@ export async function GET(request: Request) {
     rows.forEach((r) =>
       sheet.addRow({
         ...r,
+        middle_name: r.middle_name ?? "",
         department_name: r.department_name ?? "",
         category_name: r.category_name ?? "",
         avg_score: r.avg_score ?? "",
@@ -227,7 +231,7 @@ export async function GET(request: Request) {
         completed_at: r.completed_at ? formatDate(r.completed_at) : "",
       })
     );
-    sheet.autoFilter = { from: "A1", to: "N1" };
+    sheet.autoFilter = { from: "A1", to: "O1" };
     sheet.views = [{ state: "frozen", ySplit: 1 }];
     sheet.eachRow((row, index) => {
       if (index > 1) row.alignment = { vertical: "top", wrapText: false };
@@ -321,7 +325,7 @@ export async function GET(request: Request) {
       drawHeader();
     }
     const cells = [
-      `${r.first_name} ${r.last_name} (${r.staff_id})`,
+      `${[r.first_name, r.middle_name, r.last_name].filter(Boolean).join(" ")} (${r.staff_id})`,
       r.department_name ?? "—",
       r.course_title,
       r.enrollment_status === "completed" ? "Completed" : "In progress",

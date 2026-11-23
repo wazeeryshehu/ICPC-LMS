@@ -5,7 +5,7 @@ export function getVerificationRecord(certNo: string): VerificationRecord | null
   const row = getDb()
     .prepare(
       `SELECT ct.cert_no, ct.final_score, ct.grade, ct.issued_at, ct.revoked, ct.revoked_reason,
-              u.first_name, u.last_name, u.staff_id, c.title, c.cpd_points, cat.name AS category
+              u.first_name, u.middle_name, u.last_name, u.staff_id, c.title, c.cpd_points, cat.name AS category
        FROM certificates ct
        JOIN users u ON u.id = ct.user_id
        JOIN courses c ON c.id = ct.course_id
@@ -21,6 +21,7 @@ export function getVerificationRecord(certNo: string): VerificationRecord | null
         revoked: number;
         revoked_reason: string | null;
         first_name: string;
+        middle_name: string | null;
         last_name: string;
         staff_id: string;
         title: string;
@@ -31,7 +32,7 @@ export function getVerificationRecord(certNo: string): VerificationRecord | null
   if (!row) return null;
   return {
     certNo: row.cert_no,
-    learnerName: `${row.first_name} ${row.last_name}`,
+    learnerName: [row.first_name, row.middle_name, row.last_name].filter(Boolean).join(" "),
     staffId: row.staff_id,
     courseTitle: row.title,
     category: row.category,

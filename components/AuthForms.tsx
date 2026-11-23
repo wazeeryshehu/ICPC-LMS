@@ -199,7 +199,7 @@ export function ActivateForm() {
             placeholder="P0022"
             value={staffId}
             onChange={(e) => setStaffId(e.target.value.toUpperCase())}
-            maxLength={10}
+            maxLength={20}
             required
           />
         </div>

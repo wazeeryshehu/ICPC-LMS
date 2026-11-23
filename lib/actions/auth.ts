@@ -37,7 +37,7 @@ function parseIdentifier(raw: string): { staffId: string; email: string } | { er
   }
   const staffId = value.toUpperCase();
   if (!isValidStaffId(staffId)) {
-    return { error: "Staff IDs use the format P plus four digits, for example P0001." };
+    return { error: "Staff IDs should be 2-20 characters using letters, numbers, hyphens or slashes, for example P0001." };
   }
   return { staffId, email: "" };
 }
@@ -307,7 +307,7 @@ export async function activateAction(_prev: AuthState, formData: FormData): Prom
     return { error: "All fields are required." };
   }
   if (!isValidStaffId(staffId)) {
-    return { error: "Staff IDs use the format P plus four digits, for example P0001." };
+    return { error: "Staff IDs should be 2-20 characters using letters, numbers, hyphens or slashes, for example P0001." };
   }
   if (!isValidOfficialEmail(email)) {
     return { error: "Activate using your official ICPC email address, for example firstname.surname@icpc.gov.ng." };

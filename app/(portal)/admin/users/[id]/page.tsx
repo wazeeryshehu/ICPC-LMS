@@ -34,6 +34,7 @@ export default async function AdminUserDetailPage({
         staff_id: string;
         email: string;
         first_name: string;
+        middle_name: string | null;
         last_name: string;
         role: Role;
         designation: string | null;
@@ -90,7 +91,7 @@ export default async function AdminUserDetailPage({
     <div className="space-y-6">
       <PageHeader
         eyebrow={`${staff.staff_id} · ${staff.department_name ?? "Unassigned"}`}
-        title={fullName(staff.first_name, staff.last_name)}
+        title={fullName(staff.first_name, staff.last_name, staff.middle_name)}
         description={`${ROLE_LABELS[staff.role]}${staff.designation ? ` · ${staff.designation}` : ""} · joined ${formatDateTime(staff.created_at)}`}
         actions={
           <>
@@ -128,6 +129,16 @@ export default async function AdminUserDetailPage({
           The selected department and unit do not match. Choose a unit within the department.
         </div>
       )}
+      {error === "staffid" && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12.5px] text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+          That Staff ID is invalid or already belongs to another staff member. Use 2-20 letters, numbers, hyphens or slashes (e.g. P0027 or ICPC/HR/0231).
+        </div>
+      )}
+      {error === "email" && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12.5px] text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+          That official email is invalid or already belongs to another staff member. It must end with @icpc.gov.ng.
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Enrolments" value={enrollmentStats.total} sub={`${enrollmentStats.completed ?? 0} completed`} icon={<BookOpen size={18} />} />
@@ -153,12 +164,36 @@ export default async function AdminUserDetailPage({
               <input type="hidden" name="userId" value={staff.id} />
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
+                  <label className="label" htmlFor="otherName">Other name</label>
+                  <input id="otherName" name="otherName" defaultValue={staff.middle_name ?? ""} className="input" maxLength={60} />
+                </div>
+                <div>
                   <label className="label">Designation</label>
                   <input name="designation" defaultValue={staff.designation ?? ""} className="input" />
                 </div>
                 <div>
                   <label className="label">Phone</label>
                   <input name="phone" defaultValue={staff.phone ?? ""} className="input" />
+                </div>
+                <div>
+                  <label className="label" htmlFor="staffId">Staff ID</label>
+                  <input
+                    id="staffId"
+                    name="staffId"
+                    defaultValue={staff.staff_id}
+                    className="input font-mono uppercase"
+                    maxLength={20}
+                    autoCapitalize="characters"
+                    spellCheck={false}
+                    required
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="label" htmlFor="email">Official email</label>
+                  <input id="email" name="email" type="email" defaultValue={staff.email} className="input" maxLength={80} required />
+                  <p className="mt-1 text-[10px] text-muted">
+                    The Staff ID and official email are the officer&apos;s sign-in identifiers. Changes are checked for format and uniqueness, and recorded in the audit trail.
+                  </p>
                 </div>
                 <div>
                   <label className="label">Department</label>

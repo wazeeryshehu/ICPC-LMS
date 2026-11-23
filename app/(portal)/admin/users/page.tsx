@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Lock, Plus, Search, ShieldCheck, Unlock, UserCheck, UserX } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { formatDateTime, humanStatus } from "@/lib/format";
+import { formatDateTime, fullName, humanStatus } from "@/lib/format";
 import { ROLE_LABELS, roleBadgeClass, type Role } from "@/lib/rbac";
 import { PageHeader, StatCard } from "@/components/ui";
 import { setUserStatusAction, unlockUserAction } from "@/lib/actions/admin";
@@ -25,9 +25,9 @@ export default async function AdminUsersPage({
   const where: string[] = [];
   const args: Array<string | number> = [];
   if (q) {
-    where.push("(u.first_name LIKE ? OR u.last_name LIKE ? OR u.staff_id LIKE ? OR u.email LIKE ?)");
+    where.push("(u.first_name LIKE ? OR u.middle_name LIKE ? OR u.last_name LIKE ? OR u.staff_id LIKE ? OR u.email LIKE ?)");
     const like = `%${q}%`;
-    args.push(like, like, like, like);
+    args.push(like, like, like, like, like);
   }
   if (role) {
     where.push("u.role = ?");
@@ -45,7 +45,7 @@ export default async function AdminUsersPage({
 
   const users = db
     .prepare(
-      `SELECT u.id, u.staff_id, u.email, u.first_name, u.last_name, u.role, u.designation, u.status,
+      `SELECT u.id, u.staff_id, u.email, u.first_name, u.middle_name, u.last_name, u.role, u.designation, u.status,
               u.last_login_at, u.failed_attempts, u.locked_until, u.must_change_password,
               d.name AS department_name, un.name AS unit_name
        FROM users u
@@ -59,6 +59,7 @@ export default async function AdminUsersPage({
     staff_id: string;
     email: string;
     first_name: string;
+    middle_name: string | null;
     last_name: string;
     role: Role;
     designation: string | null;
@@ -89,7 +90,7 @@ export default async function AdminUsersPage({
       <PageHeader
         eyebrow="Staff register"
         title="Staff management"
-        description="Create staff accounts with automatically generated Staff IDs (P####) and official ICPC email addresses. Suspend, unlock and reset credentials."
+        description="Create staff accounts with automatically assigned or manually entered Staff IDs and official ICPC email addresses. Suspend, unlock, correct sign-in details and reset credentials."
         actions={<Link href="/admin/users/new" className="btn btn-primary btn-sm"><Plus size={14} /> Add staff</Link>}
       />
 
@@ -161,7 +162,7 @@ export default async function AdminUsersPage({
                 return (
                   <tr key={u.id}>
                     <td>
-                      <div className="font-semibold text-ink">{u.first_name} {u.last_name}</div>
+                      <div className="font-semibold text-ink">{fullName(u.first_name, u.last_name, u.middle_name)}</div>
                       <div className="text-[10.5px] text-muted">{u.staff_id} · {u.email}</div>
                       {u.designation && <div className="text-[10px] text-muted">{u.designation}</div>}
                     </td>

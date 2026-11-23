@@ -2,7 +2,7 @@ import { AlertTriangle, CheckCircle2, KeyRound, Lock, Mail, MapPin, Phone, Shiel
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { formatDateTime, initials } from "@/lib/format";
+import { formatDateTime, fullName, initials } from "@/lib/format";
 import { ROLE_LABELS } from "@/lib/rbac";
 import { PageHeader } from "@/components/ui";
 import { changePasswordAction, updateProfileAction } from "@/lib/actions/account";
@@ -72,7 +72,7 @@ export default async function ProfilePage({
                 {initials(user.first_name, user.last_name)}
               </div>
               <div>
-                <h2 className="font-display text-[20px] font-bold text-ink">{user.first_name} {user.last_name}</h2>
+                <h2 className="font-display text-[20px] font-bold text-ink">{fullName(user.first_name, user.last_name, user.middle_name)}</h2>
                 <div className="text-[12px] text-muted">{user.designation ?? "Staff"}</div>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   <span className="chip chip-gold">{ROLE_LABELS[user.role]}</span>
@@ -85,7 +85,7 @@ export default async function ProfilePage({
             <dl className="mt-5 grid gap-4 border-t border-line pt-5 sm:grid-cols-2">
               <div>
                 <dt className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted"><UserRound size={11} /> Full name</dt>
-                <dd className="mt-0.5 text-[13px] font-medium text-ink">{user.first_name} {user.last_name}</dd>
+                <dd className="mt-0.5 text-[13px] font-medium text-ink">{fullName(user.first_name, user.last_name, user.middle_name)}</dd>
               </div>
               <div>
                 <dt className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted"><Mail size={11} /> Official email</dt>

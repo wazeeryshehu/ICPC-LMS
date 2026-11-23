@@ -13,6 +13,7 @@ export interface SessionUser {
   staff_id: string;
   email: string;
   first_name: string;
+  middle_name: string | null;
   last_name: string;
   role: Role;
   designation: string | null;
@@ -34,7 +35,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   const db = getDb();
   const row = db
     .prepare(
-      `SELECT u.id, u.staff_id, u.email, u.first_name, u.last_name, u.role, u.designation,
+      `SELECT u.id, u.staff_id, u.email, u.first_name, u.middle_name, u.last_name, u.role, u.designation,
               u.department_id, d.name AS department_name, d.code AS department_code,
               u.unit_id, un.name AS unit_name, u.status, u.must_change_password,
               u.last_login_at, u.phone, s.expires_at

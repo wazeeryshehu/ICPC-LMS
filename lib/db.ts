@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT,
   first_name TEXT NOT NULL,
+  middle_name TEXT,
   last_name TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'learner',
   designation TEXT,
@@ -374,12 +375,20 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 `;
 
+function migrate(db: DatabaseSync) {
+  const columns = db.prepare("PRAGMA table_info(users)").all() as Array<{ name: string }>;
+  if (!columns.some((column) => column.name === "middle_name")) {
+    db.exec("ALTER TABLE users ADD COLUMN middle_name TEXT");
+  }
+}
+
 export function getDb(): DatabaseSync {
   if (!globalForDb.__icpcDb) {
     const dir = dataDir();
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     const db = new DatabaseSync(path.join(dir, "icpc-lms.db"));
     db.exec(SCHEMA);
+    migrate(db);
     globalForDb.__icpcDb = db;
   }
   return globalForDb.__icpcDb;

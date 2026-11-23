@@ -4,6 +4,7 @@ import { allCourses } from "./content";
 interface SeedUser {
   staffId: string;
   firstName: string;
+  otherName?: string;
   lastName: string;
   role: string;
   designation: string;
@@ -83,14 +84,14 @@ const BADGES = [
 ];
 
 const USERS: SeedUser[] = [
-  { staffId: "P0001", firstName: "Ada", lastName: "Okafor", role: "super_admin", designation: "Director, ICT", dept: "ICT", unit: "Digital Transformation Unit" },
-  { staffId: "P0002", firstName: "Ngozi", lastName: "Eze", role: "training_admin", designation: "Deputy Director, Training and Development", dept: "HR", unit: "Training and Development Unit" },
-  { staffId: "P0003", firstName: "Ibrahim", lastName: "Bello", role: "instructor", designation: "Assistant Director, Cybersecurity", dept: "ICT", unit: "Cybersecurity Unit" },
+  { staffId: "P0001", firstName: "Ada", otherName: "Nneka", lastName: "Okafor", role: "super_admin", designation: "Director, ICT", dept: "ICT", unit: "Digital Transformation Unit" },
+  { staffId: "P0002", firstName: "Ngozi", otherName: "Chiamaka", lastName: "Eze", role: "training_admin", designation: "Deputy Director, Training and Development", dept: "HR", unit: "Training and Development Unit" },
+  { staffId: "P0003", firstName: "Ibrahim", otherName: "Musa", lastName: "Bello", role: "instructor", designation: "Assistant Director, Cybersecurity", dept: "ICT", unit: "Cybersecurity Unit" },
   { staffId: "P0004", firstName: "Aisha", lastName: "Lawal", role: "instructor", designation: "Principal Legal Officer", dept: "LEGAL", unit: "Legal Drafting Unit" },
   { staffId: "P0005", firstName: "Musa", lastName: "Danjuma", role: "instructor", designation: "Deputy Director, Investigations", dept: "INVEST", unit: "Financial Investigations Unit" },
   { staffId: "P0006", firstName: "Chinedu", lastName: "Anene", role: "coordinator", designation: "Departmental Training Coordinator", dept: "INVEST", unit: "Case Management Unit" },
   { staffId: "P0007", firstName: "Emeka", lastName: "Nwosu", role: "management", designation: "Director of Operations", dept: "CHAIR" },
-  { staffId: "P0008", firstName: "Fatima", lastName: "Abubakar", role: "learner", designation: "Senior Legal Officer", dept: "LEGAL", unit: "Prosecution Support Unit" },
+  { staffId: "P0008", firstName: "Fatima", otherName: "Hauwa", lastName: "Abubakar", role: "learner", designation: "Senior Legal Officer", dept: "LEGAL", unit: "Prosecution Support Unit" },
   { staffId: "P0009", firstName: "Tunde", lastName: "Bakare", role: "learner", designation: "Senior Systems Analyst", dept: "ICT", unit: "Infrastructure and Support Unit" },
   { staffId: "P0010", firstName: "Halima", lastName: "Sani", role: "learner", designation: "Accounts Officer", dept: "FIN" },
   { staffId: "P0011", firstName: "Olumide", lastName: "Adebayo", role: "learner", designation: "Research Officer", dept: "PRS" },
@@ -101,7 +102,7 @@ const USERS: SeedUser[] = [
   { staffId: "P0016", firstName: "Suleiman", lastName: "Garba", role: "learner", designation: "Investigating Officer", dept: "INVEST", unit: "Operations Unit" },
   { staffId: "P0017", firstName: "Amara", lastName: "Okonkwo", role: "learner", designation: "Human Resources Officer", dept: "HR", unit: "Personnel Records Unit" },
   { staffId: "P0018", firstName: "Bala", lastName: "Yusuf", role: "learner", designation: "Finance Officer", dept: "FIN" },
-  { staffId: "P0019", firstName: "Yetunde", lastName: "Ojo", role: "learner", designation: "Cybersecurity Analyst", dept: "ICT", unit: "Cybersecurity Unit" },
+  { staffId: "P0019", firstName: "Yetunde", otherName: "Folake", lastName: "Ojo", role: "learner", designation: "Cybersecurity Analyst", dept: "ICT", unit: "Cybersecurity Unit" },
   { staffId: "P0020", firstName: "Danladi", lastName: "Musa", role: "learner", designation: "Intelligence Officer", dept: "SEC", unit: "Intelligence Analysis Unit" },
   { staffId: "P0021", firstName: "Ifeoma", lastName: "Nnamdi", role: "learner", designation: "Administrative Officer", dept: "ADMIN" },
   { staffId: "P0022", firstName: "Grace", lastName: "Adeyemi", role: "learner", designation: "Training Officer", dept: "HR", unit: "Training and Development Unit", status: "pending", pendingActivation: true },
@@ -216,9 +217,9 @@ export function seedDatabase(db: any) {
     // -------------------------------------------------------------------- users
     const userIds = new Map<string, number>();
     const userStmt = db.prepare(`
-      INSERT INTO users(staff_id, email, password_hash, first_name, last_name, role, designation,
+      INSERT INTO users(staff_id, email, password_hash, first_name, middle_name, last_name, role, designation,
         department_id, unit_id, phone, status, must_change_password, last_login_at, created_at, updated_at)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `);
     for (const u of USERS) {
       const email = `${u.firstName.toLowerCase()}.${u.lastName.toLowerCase()}@icpc.gov.ng`;
@@ -230,6 +231,7 @@ export function seedDatabase(db: any) {
         email,
         u.pendingActivation ? null : demoHash,
         u.firstName,
+        u.otherName ?? null,
         u.lastName,
         u.role,
         u.designation,
