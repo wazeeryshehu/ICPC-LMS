@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { randomInt } from "node:crypto";
 import { getDb, nowIso, withTransaction } from "@/lib/db";
 import { getClientIp, logAudit, requireUser } from "@/lib/auth";
-import { hashPassword, isValidOfficialEmail, isValidStaffId, validatePasswordPolicy } from "@/lib/crypto";
+import { hashPassword, isValidOfficialEmail, isValidStaffId } from "@/lib/crypto";
 import { createNotification } from "@/lib/achievements";
 import { isSuperAdmin, ROLE_LABELS, type Role } from "@/lib/rbac";
 
@@ -43,12 +43,10 @@ export async function createUserAction(formData: FormData): Promise<void> {
   const departmentId = Number(formData.get("departmentId")) || null;
   const unitId = Number(formData.get("unitId")) || null;
   const phone = String(formData.get("phone") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
+  const tempPassword = `Icpc@${randomInt(100000, 1000000)}`;
 
   if (!first || !last || otherName.length > 60 || !ROLES.includes(role)) redirect("/admin/users/new?error=invalid");
   if (role === "super_admin" && !isSuperAdmin(actor.role)) redirect("/admin/users/new?error=privilege");
-  const policyError = validatePasswordPolicy(password);
-  if (policyError) redirect(`/admin/users/new?error=policy`);
 
   if (staffIdInput && !isValidStaffId(staffIdInput)) redirect("/admin/users/new?error=staffid");
   if (!emailInput || !isValidOfficialEmail(emailInput)) redirect("/admin/users/new?error=email");
@@ -67,7 +65,7 @@ export async function createUserAction(formData: FormData): Promise<void> {
       `INSERT INTO users(staff_id, email, password_hash, first_name, middle_name, last_name, role, designation, department_id, unit_id, phone,
         status, must_change_password, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
     )
-    .run(staffId, email, hashPassword(password), first, otherName || null, last, role, designation || null, departmentId, unitId, phone || null, "active", 1, nowIso(), nowIso());
+    .run(staffId, email, hashPassword(tempPassword), first, otherName || null, last, role, designation || null, departmentId, unitId, phone || null, "active", 1, nowIso(), nowIso());
   const userId = Number(info.lastInsertRowid);
 
   createNotification({
@@ -86,7 +84,7 @@ export async function createUserAction(formData: FormData): Promise<void> {
     details: `${[first, otherName, last].filter(Boolean).join(" ")} (${staffId}, ${ROLE_LABELS[role]}) created`,
     ip: await getClientIp(),
   });
-  redirect(`/admin/users?created=${encodeURIComponent(`${staffId}|${email}`)}`);
+  redirect(`/admin/users/${userId}?created=1&temp=${encodeURIComponent(tempPassword)}`);
 }
 
 export async function updateUserAction(formData: FormData): Promise<void> {

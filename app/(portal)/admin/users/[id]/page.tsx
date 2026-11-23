@@ -15,11 +15,11 @@ export default async function AdminUserDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string; temp?: string; error?: string }>;
+  searchParams: Promise<{ saved?: string; temp?: string; created?: string; error?: string }>;
 }) {
   const actor = await requireUser(["super_admin", "training_admin"]);
   const { id } = await params;
-  const { saved, temp, error } = await searchParams;
+  const { saved, temp, created, error } = await searchParams;
   const db = getDb();
   const userId = Number(id);
   const staff = db
@@ -109,7 +109,13 @@ export default async function AdminUserDetailPage({
           Staff record updated and audit trail recorded.
         </div>
       )}
-      {temp && (
+      {temp && created && (
+        <div className="rounded-xl border border-gold-300 bg-gold-50 px-4 py-3 text-[12.5px] text-gold-900 dark:border-gold-900/50 dark:bg-gold-900/20 dark:text-gold-100">
+          Staff account created. Staff ID <strong>{staff.staff_id}</strong> · official email {staff.email} · temporary password{" "}
+          <strong className="font-mono">{temp}</strong>. Share these details securely; the staff member must change the password at first sign-in.
+        </div>
+      )}
+      {temp && !created && (
         <div className="rounded-xl border border-gold-300 bg-gold-50 px-4 py-3 text-[12.5px] text-gold-900 dark:border-gold-900/50 dark:bg-gold-900/20 dark:text-gold-100">
           Temporary password issued: <strong className="font-mono">{temp}</strong>. Share it securely. All active sessions were signed out and the staff member must change it at next sign-in.
         </div>

@@ -137,12 +137,8 @@ export default async function NewUserPage({ searchParams }: { searchParams: Prom
           </div>
 
           <h2 className="pt-2 font-display text-[16px] font-bold text-ink">Access credentials</h2>
-          <div>
-            <label className="label" htmlFor="password">Temporary password *</label>
-            <input id="password" name="password" type="text" className="input" defaultValue="Icpc@2026!" required minLength={10} />
-            <p className="mt-1.5 text-[10.5px] leading-relaxed text-muted">
-              Must contain at least 10 characters, uppercase, lowercase, a number and a symbol. The staff member is required to change it at first sign-in.
-            </p>
+          <div className="rounded-lg border border-line bg-panel-2 p-4 text-[11.5px] leading-relaxed text-muted">
+            A temporary password is generated automatically when the account is created and shown once on the new staff record. Share it securely; the officer must change it at first sign-in.
           </div>
         </div>
 
